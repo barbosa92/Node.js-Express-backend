@@ -1,0 +1,28 @@
+{
+  "name": "part3-fullstack",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon index.js",
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/barbosa92/part3-fullstack.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/barbosa92/part3-fullstack/issues"
+  },
+  "homepage": "https://github.com/barbosa92/part3-fullstack#readme",
+  "devDependencies": {
+    "nodemon": "2.0.19"
+  },
+  "dependencies": {
+    "express": "4.18.1"
+  }
+}
