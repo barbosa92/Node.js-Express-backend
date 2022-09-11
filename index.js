@@ -3,10 +3,12 @@
 // import http from 'http'
 const express = require('express')
 const logger = require('./loggerMiddleware')
+const cors = require('cors')
 const app = express()
 
 app.use(express.json())
 app.use(logger)
+app.use(cors())
 
 let notes = [
   {
@@ -29,10 +31,6 @@ let notes = [
   }
 ]
 
-// const app = http.createServer((request, response) => {
-//   response.writeHead(200, { 'Content-Type': 'application/json' })
-//   response.end(JSON.stringify(notes))
-// })
 app.get('/', (request, response) => {
   response.send('<h1>Hola Mundo</h1>')
 }
@@ -78,6 +76,7 @@ app.use((request, response) => {
   response.status(404).json({ error: 'Not found' })
 })
 
-const PORT = 3000
-app.listen(PORT)
-console.log(`Server running on port ${PORT}`)
+const PORT = process.env.PORT || 3001
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`)
+})
