@@ -1,6 +1,9 @@
 // Esta escrito en "Common JS" porque Node.js antes no aceptaba ECMAScript pero
 // lo siguiente podría escribirse también de la siguiente manera
 // import http from 'http'
+require('./mongo')
+const Note = require('./models/Note')
+
 const express = require('express')
 const logger = require('./loggerMiddleware')
 const cors = require('cors')
@@ -10,26 +13,14 @@ app.use(express.json())
 app.use(logger)
 app.use(cors())
 
-let notes = [
-  {
-    id: 1,
-    content: 'Fregar y recoger',
-    date: '2022-09-09',
-    important: false
-  },
-  {
-    id: 2,
-    content: 'Estudiar',
-    date: '2022-09-08',
-    important: true
-  },
-  {
-    id: 3,
-    content: 'Comer',
-    date: '2022-09-08',
-    important: true
-  }
-]
+let notes = []
+
+// const generateId = () => {
+//   const notesIds = Note.map(n => n.id)
+//   const maxId = notesIds.length ? Math.max(...notesIds) : 0
+//   const newId = maxId + 1
+//   return newId
+// }
 
 app.get('/', (request, response) => {
   response.send('<h1>Hola Mundo</h1>')
@@ -37,7 +28,10 @@ app.get('/', (request, response) => {
 )
 
 app.get('/api/notes', (request, response) => {
-  response.json(notes)
+  Note.find({})
+    .then(notes => {
+      response.json(notes)
+    })
 })
 
 app.get('/api/notes/:id', (request, response) => {
@@ -60,7 +54,7 @@ app.post('/api/notes', (request, response) => {
   }
 
   const ids = notes.map(note => note.id)
-  console.log(ids)
+  // console.log(ids)
   const maxId = Math.max(...ids)
   const newNote = {
     id: maxId + 1,
