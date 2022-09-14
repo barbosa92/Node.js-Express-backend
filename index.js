@@ -1,6 +1,7 @@
 // Esta escrito en "Common JS" porque Node.js antes no aceptaba ECMAScript pero
 // lo siguiente podría escribirse también de la siguiente manera
 // import http from 'http'
+require('dotenv').config()
 require('./mongo')
 const Note = require('./models/Note')
 
@@ -13,19 +14,11 @@ app.use(express.json())
 app.use(logger)
 app.use(cors())
 
-let notes = []
-
-// const generateId = () => {
-//   const notesIds = Note.map(n => n.id)
-//   const maxId = notesIds.length ? Math.max(...notesIds) : 0
-//   const newId = maxId + 1
-//   return newId
-// }
+const notes = []
 
 app.get('/', (request, response) => {
   response.send('<h1>Hola Mundo</h1>')
-}
-)
+})
 
 app.get('/api/notes', (request, response) => {
   Note.find({})
@@ -34,15 +27,23 @@ app.get('/api/notes', (request, response) => {
     })
 })
 
-app.get('/api/notes/:id', (request, response) => {
-  const id = Number(request.params.id)
-  const note = notes.find(note => note.id === id)
-  note ? response.json(note) : response.status(404).end()
+app.get('/api/notes/:id', (request, response, next) => {
+  const { id } = request.params
+
+  Note.findById(id).then(note => {
+    note ? response.json(note) : response.status(404).end()
+  }).catch(err => {
+    next(err)
+  })
 })
 
-app.delete('/api/notes/:id', (request, response) => {
-  const id = Number(request.params.id)
-  notes = notes.filter(note => note.id !== id)
+app.delete('/api/notes/:id', (request, response, next) => {
+  const { id } = request.params
+  Note.findByIdAndRemove(id).then(result => {
+
+  }).catch(error => {
+    next(error)
+  })
   response.status(204).end()
 })
 
@@ -53,21 +54,24 @@ app.post('/api/notes', (request, response) => {
     return response.status(400).json({ error: 'note.content is missing' })
   }
 
-  const ids = notes.map(note => note.id)
-  // console.log(ids)
-  const maxId = Math.max(...ids)
-  const newNote = {
-    id: maxId + 1,
+  const newNote = new Note({
     content: note.content,
-    date: new Date().toISOString(),
-    important: typeof note.important !== 'undefined' ? note.important : false
-  }
-  notes = [...notes, newNote]
-  response.json(newNote)
+    date: new Date(),
+    important: note.important || false
+  })
+
+  newNote.save().then((savedNote) => {
+    response.json(savedNote)
+  })
 })
 
-app.use((request, response) => {
-  response.status(404).json({ error: 'Not found' })
+app.use((error, request, response, next) => {
+  console.log(error)
+  if (error.name === 'CastError') {
+    response.status(400).send({ error: 'id used is malformed' })
+  } else {
+    response.status(500).end()
+  }
 })
 
 const PORT = process.env.PORT || 3001
