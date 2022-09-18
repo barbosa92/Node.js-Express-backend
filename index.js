@@ -4,6 +4,8 @@
 require('dotenv').config()
 require('./mongo')
 const Note = require('./models/Note')
+const notFound = require('./middleware/notFound')
+const handleError = require('./middleware/handleError')
 
 const express = require('express')
 const logger = require('./loggerMiddleware')
@@ -13,8 +15,7 @@ const app = express()
 app.use(express.json())
 app.use(logger)
 app.use(cors())
-
-const notes = []
+app.use('/images', express.static('images'))
 
 app.get('/', (request, response) => {
   response.send('<h1>Hola Mundo</h1>')
@@ -37,6 +38,21 @@ app.get('/api/notes/:id', (request, response, next) => {
   })
 })
 
+app.put('/api/notes/:id', (request, response, next) => {
+  const { id } = request.params
+
+  const note = request.body
+
+  const newNoteInfo = {
+    content: note.content,
+    important: note.important
+  }
+
+  Note.findByIdAndUpdate(id, newNoteInfo, { new: true })
+    .then(result => {
+      response.json(result)
+    })
+})
 app.delete('/api/notes/:id', (request, response, next) => {
   const { id } = request.params
   Note.findByIdAndRemove(id).then(result => {
@@ -65,14 +81,8 @@ app.post('/api/notes', (request, response) => {
   })
 })
 
-app.use((error, request, response, next) => {
-  console.log(error)
-  if (error.name === 'CastError') {
-    response.status(400).send({ error: 'id used is malformed' })
-  } else {
-    response.status(500).end()
-  }
-})
+app.use(notFound)
+app.use(handleError)
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
